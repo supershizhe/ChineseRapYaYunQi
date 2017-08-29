@@ -309,7 +309,6 @@ public class Rapper {
 				if (REPORT_ON_SCREEN) {
 					System.out.println("==========================");
 				}
-				System.out.print("是否匹配下一组韵母：(y/n) ");
 			}
 		}
 	}
