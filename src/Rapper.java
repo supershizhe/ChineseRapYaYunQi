@@ -6,13 +6,13 @@ public class Rapper {
 	private static final Boolean REPORT_ON_SCREEN = true;
 	private static final Boolean ENTER_CUSTOM_MODE = true;
 	private static final Boolean BLURRING = false;
+	private static final String REPORT_ALL = "report_all.txt";
+	private static final Integer LEVEL = 2;
+	private static final String BLUR_CONFIG = "BlurringConfig";
 	
 	private static final String DICT = "cidian.txt";
 	private static final String DICT2 = "cidian2.txt";
-	private static final String REPORT_ALL = "report_all.txt";
-	private static final String BLUR_CONFIG = "BlurringConfig";
 	
-	private static final Integer LEVEL = 2;
 	private static final List<Character> allPinYin = new ArrayList<Character>();
 	private static final Map<Character, Character> allPinYinInEnglish = new HashMap<Character, Character>();
 	private static final Map<Character, List<Character>> aoeiuv = new HashMap<Character, List<Character>>();
@@ -359,6 +359,16 @@ public class Rapper {
 				System.out.println("  e.g.1 给“嘻哈”押声调双韵，Input: “i(1) a(1)”");
 				System.out.println("  e.g.2 给“嘻哈”押全调双韵，Input: “i(1,2,3,4,0) a(1,2,3,4,0)” 或 “i a”");
 				System.out.println("Use “v” as “ü” in “nü、lü、nüe、lüe、jü、qü、xü”");
+				System.out.println("===== Current Config =====");
+				System.out.println("  You can change below configurations by modify global variables of this program.");
+				System.out.println("  显示说明书（SHOW_INSTR）：" + SHOW_INSTR);
+				System.out.println("  直接显示结果（REPORT_ON_SCREEN）：" + REPORT_ON_SCREEN);
+				System.out.println("  自定义查词（ENTER_CUSTOM_MODE）：" + ENTER_CUSTOM_MODE);
+				System.out.println("  模糊音处理（BLURRING）：" + BLURRING);
+				System.out.println("  结果输出文件（REPORT_ALL）：" + REPORT_ALL);
+				System.out.println("  结果输出文件韵脚深度（LEVEL）：" + LEVEL);
+				System.out.println("  模糊音处理设置文件（BLUR_CONFIG）：" + BLUR_CONFIG);
+				System.out.println("    Open and edit the BLUR_CONFIG file, then turn BLURRING to true to set模糊音");
 				System.out.println("==========================");
 			}
 			while (true) {
