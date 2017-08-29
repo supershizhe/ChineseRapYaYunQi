@@ -8,7 +8,8 @@ public class Rapper {
 	private static final List<Character> allPinYin = new ArrayList<Character>();
 	private static final Map<Character, Character> allPinYinInEnglish = new HashMap<Character, Character>();
 	private static final Map<Character, List<Character>> aoeiuv = new HashMap<Character, List<Character>>();
-	private static final Set<Character> allYunMu = new TreeSet<Character>();
+	private static final Set<Character> allYuanYinYunMu = new TreeSet<Character>();
+	private static final Set<String> allYunMu = new TreeSet<String>();
 	private static final String TEST_STRING = "试一试";
 	private static final String DICT = "cidian2.txt";
 	private static final String REPORT_ALL = "report_all.txt";
@@ -65,18 +66,18 @@ public class Rapper {
 		allPinYin.add('ǘ');
 		allPinYin.add('ǚ');
 		allPinYin.add('ǜ');
-		allYunMu.addAll(allPinYin);
+		allYuanYinYunMu.addAll(allPinYin);
 		for (int i = 0; i < 26; i++) {
 			allPinYin.add((char) ('ａ' + i));
 			allPinYinInEnglish.put((char) ('a' + i), (char) ('ａ' + i));
 		}
 		allPinYinInEnglish.put('v', 'ü');
 		
-		allYunMu.add('ａ');
-		allYunMu.add('ｏ');
-		allYunMu.add('ｅ');
-		allYunMu.add('ｉ');
-		allYunMu.add('ｕ');
+		allYuanYinYunMu.add('ａ');
+		allYuanYinYunMu.add('ｏ');
+		allYuanYinYunMu.add('ｅ');
+		allYuanYinYunMu.add('ｉ');
+		allYuanYinYunMu.add('ｕ');
 		allPinYinInEnglish.put('（', '(');
 		allPinYinInEnglish.put('）', ')');
 		allPinYinInEnglish.put('，', ',');
@@ -142,6 +143,7 @@ public class Rapper {
 					chars.put(ch, new HashSet<String>());
 				}
 				chars.get(ch).add(yunMu);
+				allYunMu.add(yunMu);
 			}
 		}
 		input.close();
@@ -160,7 +162,7 @@ public class Rapper {
 				started = true;
 				if (recording) {
 					yunMu += ch;
-				} else if (!allYunMu.contains(ch)) {
+				} else if (!allYuanYinYunMu.contains(ch)) {
 					shengMu += ch;
 				} else {
 					recording = true;
@@ -332,16 +334,48 @@ public class Rapper {
 			String yinDiaoInfo = yunMuInfo.substring(yunMuInfo.indexOf('(') + 1, yunMuInfo.indexOf(')'));
 			String[] yinDiaos = yinDiaoInfo.trim().split(",");
 			for (String yinDiao : yinDiaos) {
-				result.get(i).add(biaoYin(yunMu, yinDiao.trim()));
+				yinDiao = yinDiao.trim();
+				String wholeYunMu = biaoYin(yunMu, yinDiao.trim());
+				if (wholeYunMu.contains("*")) {
+					result.get(i).addAll(getAllYunMuWithYinDiao(yinDiao));
+				} else {
+					result.get(i).add(wholeYunMu);
+				}
 			}
 		}
 		return result;
 	}
 	
+	private static Set<String> getAllYunMuWithYinDiao(String yinDiao) {
+		Set<String> result = new TreeSet<String>();
+		for (String yunMu : allYunMu) {
+			if (getYinDiao(yunMu).equals(yinDiao)) {
+				result.add(yunMu);
+			}
+		}
+		return result;
+	}
+	
+	private static String getYinDiao(String ym) {
+		if (ym.contains("ā") || ym.contains("ō") || ym.contains("ē") || ym.contains("ī") || ym.contains("ū") || ym.contains("ǖ")) {
+			return "1";
+		} else if (ym.contains("á") || ym.contains("ó") || ym.contains("é") || ym.contains("í") || ym.contains("ú") || ym.contains("ǘ")) {
+			return "2";
+		} else if (ym.contains("ǎ") || ym.contains("ǒ") || ym.contains("ě") || ym.contains("ǐ") || ym.contains("ǔ") || ym.contains("ǚ")) {
+			return "3";
+		} else if (ym.contains("à") || ym.contains("ò") || ym.contains("è") || ym.contains("ì") || ym.contains("ù") || ym.contains("ǜ")) {
+			return "4";
+		} else {
+			return "0";
+		}
+	}
+	
 	private static String biaoYin(String yunMu, String yinDiao) {
 		Integer yinDiaoNum = Integer.parseInt(yinDiao);
-		int index = -1;
-		if (yunMu.contains("ａ")) {
+		int index = -2;
+		if (yunMu.contains("*")) {
+			return "*" + yinDiao;
+		} else if (yunMu.contains("ａ")) {
 			index = yunMu.indexOf('ａ');
 		} else if (yunMu.contains("ｏ")) {
 			index = yunMu.indexOf('ｏ');
