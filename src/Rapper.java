@@ -2,16 +2,18 @@ import java.util.*;
 import java.io.*;
 
 public class Rapper {
-	private static final Integer LEVEL = 2;
 	private static final Boolean SHOW_INSTR = true;
 	private static final Boolean REPORT_ON_SCREEN = true;
+	private static final Boolean ENTER_CUSTOM_MODE = true;
+	
+	private static final Integer LEVEL = 2;
 	private static final List<Character> allPinYin = new ArrayList<Character>();
 	private static final Map<Character, Character> allPinYinInEnglish = new HashMap<Character, Character>();
 	private static final Map<Character, List<Character>> aoeiuv = new HashMap<Character, List<Character>>();
 	private static final Set<Character> allYuanYinYunMu = new TreeSet<Character>();
 	private static final Set<String> allYunMu = new TreeSet<String>();
-	private static final String TEST_STRING = "试一试";
-	private static final String DICT = "cidian2.txt";
+	private static final String DICT = "cidian.txt";
+	private static final String DICT2 = "cidian2.txt";
 	private static final String REPORT_ALL = "report_all.txt";
 	private static final List<String> uToV_ShengMu = Arrays.asList("ｊ", "ｑ", "ｘ");
 	private static final List<String> uToV_u = Arrays.asList("ｕ", "ū", "ú", "ǔ", "ù");
@@ -22,22 +24,20 @@ public class Rapper {
 		System.out.println("*****Starting application...");
 		System.out.println("*****Building chars...");
 		buildAllPinYin();
-		buildChars(DICT);
+		buildChars(DICT2);
 		(new PrintStream(new File("chars.txt"))).println(chars);
-		// test();
 		System.out.println("*****Building words...");
 		buildWords(DICT);
 		System.out.println("*****Reporting all...");
 		reportAll(REPORT_ALL);
+		test();
 		System.out.println("*****Entering user console...");
 		reportUser(new Scanner(System.in));
 		System.out.println("*****Ending application. Goodbye.");
 	}
 	
 	private static void test() throws FileNotFoundException {
-		String s = "1234";
-		int index = 0;
-		System.out.print(s.substring(0, index) + 'x' + s.substring(index + 1));
+		// System.out.print(wordsTree);
 	}
 	
 	private static void buildAllPinYin() {
@@ -72,7 +72,8 @@ public class Rapper {
 			allPinYinInEnglish.put((char) ('a' + i), (char) ('ａ' + i));
 		}
 		allPinYinInEnglish.put('v', 'ü');
-		
+		allPinYinInEnglish.put('ɡ', 'ｇ');
+
 		allYuanYinYunMu.add('ａ');
 		allYuanYinYunMu.add('ｏ');
 		allYuanYinYunMu.add('ｅ');
@@ -146,6 +147,7 @@ public class Rapper {
 				allYunMu.add(yunMu);
 			}
 		}
+		allYunMu.remove("");
 		input.close();
 	}
 	
@@ -180,6 +182,71 @@ public class Rapper {
 	}
 
 	private static void buildWords(String filename) throws FileNotFoundException {
+		Scanner input = new Scanner(new File(filename));
+		while (input.hasNextLine()) {
+			String line = input.nextLine().trim();
+			if (line.startsWith("【") && line.contains("】")) {
+				String word = line.substring(line.indexOf('【') + 1, line.indexOf('】'));
+				if (word.length() <= 0) {
+					continue;
+				}
+				String faYinRaw = line.substring(line.indexOf('】') + 1);
+				String faYin = "";
+				for (int i = 0; i < faYinRaw.length(); i ++) {
+					char ch = faYinRaw.charAt(i);
+					if (allPinYinInEnglish.containsKey(ch)) {
+						faYin += allPinYinInEnglish.get(ch);
+					} else {
+						faYin += ch;
+					}
+				}
+				String[] yunMuList = getFaYin(faYin, word.length());
+				if (yunMuList == null || yunMuList.length == 0 || yunMuList[0] == null) {
+					continue;
+				}
+				Word cur = wordsTree;
+				for (int i = word.length() - 1; i >= 0; i--) {
+					String pron = yunMuList[i];
+					if (!cur.children.containsKey(pron)) {
+						cur.children.put(pron, new Word(pron));
+					}
+					cur = cur.children.get(pron);
+					cur.words.add(word);
+				}
+			}
+		}
+		input.close();
+	}
+	
+	private static String[] getFaYin(String rawText, int wordLength) {
+		String[] result = new String[wordLength];
+		result[0] = null;
+		int textIndex = 0;
+		int charIndex = 0;
+		String ym = "";
+		while (textIndex < rawText.length() && charIndex < wordLength) {
+			char ch = rawText.charAt(textIndex);
+			if (ym.length() == 0) {
+				if (allYuanYinYunMu.contains(ch)) {
+					ym += ch;
+				}
+			} else {
+				if (allYunMu.contains(ym + ch)) {
+					ym += ch;
+				} else {
+					result[charIndex] = ym;
+					ym = "";
+					charIndex++;
+					textIndex--;
+				}
+			}
+			textIndex++;
+		}
+		return result;
+	}
+	
+	// Discarded method
+	private static void buildWords2(String filename) throws FileNotFoundException {
 		Scanner input = new Scanner(new File(filename));
 		while (input.hasNextLine()) {
 			String line = input.nextLine().trim();
@@ -247,8 +314,9 @@ public class Rapper {
 	}
 	
 	private static void reportUser(Scanner console) throws FileNotFoundException {
-		System.out.print("Go to customized search? (y/n) ");
-		if (console.nextLine().toLowerCase().startsWith("y")) {
+		// System.out.print("Go to customized search? (y/n) ");
+		// if (console.nextLine().toLowerCase().startsWith("y")) {
+		if (ENTER_CUSTOM_MODE) {
 			if (SHOW_INSTR) {
 				System.out.println("====== Instructions ======");
 				System.out.println("Format of Input: “韵母1(声调1,声调2) 韵母2(声调3,声调4) ...”, 韵母用空格隔开");
