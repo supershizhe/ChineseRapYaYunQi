@@ -5,6 +5,12 @@ public class Rapper {
 	private static final Boolean SHOW_INSTR = true;
 	private static final Boolean REPORT_ON_SCREEN = true;
 	private static final Boolean ENTER_CUSTOM_MODE = true;
+	private static final Boolean BLURRING = false;
+	
+	private static final String DICT = "cidian.txt";
+	private static final String DICT2 = "cidian2.txt";
+	private static final String REPORT_ALL = "report_all.txt";
+	private static final String BLUR_CONFIG = "BlurringConfig";
 	
 	private static final Integer LEVEL = 2;
 	private static final List<Character> allPinYin = new ArrayList<Character>();
@@ -12,14 +18,15 @@ public class Rapper {
 	private static final Map<Character, List<Character>> aoeiuv = new HashMap<Character, List<Character>>();
 	private static final Set<Character> allYuanYinYunMu = new TreeSet<Character>();
 	private static final Set<String> allYunMu = new TreeSet<String>();
-	private static final String DICT = "cidian.txt";
-	private static final String DICT2 = "cidian2.txt";
-	private static final String REPORT_ALL = "report_all.txt";
 	private static final List<String> uToV_ShengMu = Arrays.asList("ｊ", "ｑ", "ｘ");
 	private static final List<String> uToV_u = Arrays.asList("ｕ", "ū", "ú", "ǔ", "ù");
 	private static final List<String> uToV_v = Arrays.asList("ü", "ǖ", "ǘ", "ǚ", "ǜ");
 	private static Map<Character, Set<String>> chars = new HashMap<Character, Set<String>>();
 	private static Word wordsTree = new Word("MasterTree");
+	private static Map<String, String> blurPair = new HashMap<String, String>();
+	private static Map<String, Set<String>> blurMap = new HashMap<String, Set<String>>();
+	
+	@SuppressWarnings("resource")
 	public static void main(String[] args) throws FileNotFoundException {
 		System.out.println("*****Starting application...");
 		System.out.println("*****Building chars...");
@@ -28,6 +35,10 @@ public class Rapper {
 		(new PrintStream(new File("chars.txt"))).println(chars);
 		System.out.println("*****Building words...");
 		buildWords(DICT);
+		if (BLURRING) {
+			System.out.println("*****Building blurring config...");
+			buildBlur(BLUR_CONFIG);
+		}
 		System.out.println("*****Reporting all...");
 		reportAll(REPORT_ALL);
 		test();
@@ -190,16 +201,7 @@ public class Rapper {
 				if (word.length() <= 0) {
 					continue;
 				}
-				String faYinRaw = line.substring(line.indexOf('】') + 1);
-				String faYin = "";
-				for (int i = 0; i < faYinRaw.length(); i ++) {
-					char ch = faYinRaw.charAt(i);
-					if (allPinYinInEnglish.containsKey(ch)) {
-						faYin += allPinYinInEnglish.get(ch);
-					} else {
-						faYin += ch;
-					}
-				}
+				String faYin = convertEnglishToChineseChar(line.substring(line.indexOf('】') + 1));
 				String[] yunMuList = getFaYin(faYin, word.length());
 				if (yunMuList == null || yunMuList.length == 0 || yunMuList[0] == null) {
 					continue;
@@ -216,6 +218,19 @@ public class Rapper {
 			}
 		}
 		input.close();
+	}
+	
+	private static String convertEnglishToChineseChar(String english) {
+		String chinese = "";
+		for (int i = 0; i < english.length(); i ++) {
+			char ch = english.charAt(i);
+			if (allPinYinInEnglish.containsKey(ch)) {
+				chinese += allPinYinInEnglish.get(ch);
+			} else {
+				chinese += ch;
+			}
+		}
+		return chinese;
 	}
 	
 	private static String[] getFaYin(String rawText, int wordLength) {
@@ -246,6 +261,7 @@ public class Rapper {
 	}
 	
 	// Discarded method
+	@SuppressWarnings("unused")
 	private static void buildWords2(String filename) throws FileNotFoundException {
 		Scanner input = new Scanner(new File(filename));
 		while (input.hasNextLine()) {
@@ -275,6 +291,26 @@ public class Rapper {
 					}
 					previousWords = currentWords;
 					currentWords = new HashSet<Word>();
+				}
+			}
+		}
+		input.close();
+	}
+	
+	private static void buildBlur(String filename) throws FileNotFoundException {
+		Scanner input = new Scanner(new File(filename));
+		while (input.hasNextLine()) {
+			String line = convertEnglishToChineseChar(input.nextLine().trim());
+			String[] ymRaw = line.split("=");
+			for (String ym : ymRaw) {
+				for (int i = 0; i < 5; i++) {
+					String base = biaoYin(ymRaw[0], i + "");
+					String variation = biaoYin(ym, i + "");
+					blurPair.put(variation, base);
+					if (!blurMap.containsKey(base)) {
+						blurMap.put(base, new HashSet<String>());
+					}
+					blurMap.get(base).add(variation);
 				}
 			}
 		}
@@ -397,15 +433,7 @@ public class Rapper {
 	
 	private static List<List<String>> convertInputToUTF8Array(String input) {
 		List<List<String>> result = new ArrayList<List<String>>();
-		String convertedInput = "";
-		for (int i = 0; i < input.length(); i++) {
-			char inputCh = input.charAt(i);
-			if (allPinYinInEnglish.containsKey(inputCh)) {
-				convertedInput += allPinYinInEnglish.get(inputCh);
-			} else {
-				convertedInput += inputCh;
-			}
-		}
+		String convertedInput = convertEnglishToChineseChar(input);
 		
 		String[] eachYunMu = convertedInput.split(" ");
 		for (int i = 0; i < eachYunMu.length; i++) {
@@ -426,6 +454,15 @@ public class Rapper {
 					result.get(i).addAll(getAllYunMuWithYinDiao(yinDiao));
 				} else {
 					result.get(i).add(wholeYunMu);
+				}
+				if (BLURRING) {
+					if (blurPair.containsKey(wholeYunMu)) {
+						String base = blurPair.get(wholeYunMu);
+						Set<String> set = blurMap.get(base);
+						for (String ym : set) {
+							result.get(i).add(ym);
+						}
+					}
 				}
 			}
 		}
