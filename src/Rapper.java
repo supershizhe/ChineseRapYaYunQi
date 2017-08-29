@@ -258,13 +258,35 @@ public class Rapper {
 				System.out.println("==========================");
 			}
 			while (true) {
-				System.out.print("Enter desired 韵母: ");
-				String inputLine = console.nextLine();
+				System.out.print("Enter desired 韵母 (q to quit): ");
+				String inputLine = console.nextLine().trim();
+				if (inputLine.startsWith("q")) {
+					break;
+				}
 				PrintStream output = new PrintStream(new File("Custom_" + inputLine.replace(' ', '_') + ".txt"));
+				
 				List<List<String>> yunJiao = convertInputToUTF8Array(inputLine);
 				output.println("待匹配韵脚：" + yunJiao + "\n");
 				if (REPORT_ON_SCREEN) {
 					System.out.println("待匹配韵脚：" + yunJiao + "\n");
+				}
+				
+				if (yunJiao.size() == 1) {
+					for (String yj : yunJiao.get(0)) {
+						String result = "";
+						for (Character ch : chars.keySet()) {
+							if (chars.get(ch).contains(yj)) {
+								result += ", " + ch;
+							}
+						}
+						if (result.length() > 0) {
+							output.println(yj + ": [" + result.substring(2) + "]");
+							if (REPORT_ON_SCREEN) {
+								System.out.println(yj + ": [" + result.substring(2) + "]");
+							}
+						}
+					}
+					continue;
 				}
 				
 				Set<String> keys = new HashSet<String>();
@@ -288,9 +310,6 @@ public class Rapper {
 					System.out.println("==========================");
 				}
 				System.out.print("是否匹配下一组韵母：(y/n) ");
-				if (!console.nextLine().toLowerCase().startsWith("y")) {
-					break;
-				}
 			}
 		}
 	}
