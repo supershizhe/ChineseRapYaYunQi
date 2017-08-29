@@ -5,7 +5,7 @@ public class Rapper {
 	private static final Boolean SHOW_INSTR = true;
 	private static final Boolean REPORT_ON_SCREEN = true;
 	private static final Boolean ENTER_CUSTOM_MODE = true;
-	private static final Boolean BLURRING = false;
+	private static final Boolean BLURRING = true;
 	private static final String REPORT_ALL = "report_all.txt";
 	private static final Integer LEVEL = 2;
 	private static final String BLUR_CONFIG = "BlurringConfig";
@@ -313,6 +313,9 @@ public class Rapper {
 					blurMap.get(base).add(variation);
 				}
 			}
+		}
+		for (String key : blurMap.keySet()) {
+			blurMap.get(key).remove(key);
 		}
 		input.close();
 	}
