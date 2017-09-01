@@ -6,6 +6,7 @@ public class Rapper {
 	private static final Boolean REPORT_ON_SCREEN = true;
 	private static final Boolean ENTER_CUSTOM_MODE = true;
 	private static final Boolean BLURRING = true;
+	
 	private static final String REPORT_ALL = "report_all.txt";
 	private static final Integer LEVEL = 2;
 	private static final String BLUR_CONFIG = "BlurringConfig";
@@ -375,56 +376,68 @@ public class Rapper {
 				System.out.println("==========================");
 			}
 			while (true) {
-				System.out.print("Enter desired 韵母 (q to quit): ");
-				String inputLine = console.nextLine().trim();
-				if (inputLine.startsWith("q")) {
-					break;
-				}
-				PrintStream output = new PrintStream(new File("Custom_" + inputLine.replace(' ', '_') + ".txt"));
-				
-				List<List<String>> yunJiao = convertInputToUTF8Array(inputLine);
-				output.println("待匹配韵脚：" + yunJiao + "\n");
-				if (REPORT_ON_SCREEN) {
-					System.out.println("待匹配韵脚：" + yunJiao + "\n");
-				}
-				
-				if (yunJiao.size() == 1) {
-					for (String yj : yunJiao.get(0)) {
-						String result = "";
-						for (Character ch : chars.keySet()) {
-							if (chars.get(ch).contains(yj)) {
-								result += ", " + ch;
+				try {
+					System.out.print("Enter desired 韵母 (q to quit): ");
+					String inputLine = console.nextLine().trim();
+					if (inputLine.startsWith("q")) {
+						break;
+					}
+					PrintStream output = new PrintStream(new File("Custom_" + inputLine.replace(' ', '_') + ".txt"));
+					
+					List<List<String>> yunJiao = convertInputToUTF8Array(inputLine);
+					output.println("待匹配韵脚：" + yunJiao + "\n");
+					if (REPORT_ON_SCREEN) {
+						System.out.println("待匹配韵脚：" + yunJiao + "\n");
+					}
+					
+					if (yunJiao.size() == 1) {
+						for (String yj : yunJiao.get(0)) {
+							String result = "";
+							for (Character ch : chars.keySet()) {
+								if (chars.get(ch).contains(yj)) {
+									result += ", " + ch;
+								}
+							}
+							if (result.length() > 0) {
+								output.println(yj + ": [" + result.substring(2) + "]");
+								if (REPORT_ON_SCREEN) {
+									System.out.println(yj + ": [" + result.substring(2) + "]");
+								}
 							}
 						}
-						if (result.length() > 0) {
-							output.println(yj + ": [" + result.substring(2) + "]");
-							if (REPORT_ON_SCREEN) {
-								System.out.println(yj + ": [" + result.substring(2) + "]");
+						output.println("==========================");
+						if (REPORT_ON_SCREEN) {
+							System.out.println("==========================");
+						}
+						continue;
+					}
+					
+					Set<String> keys = new HashSet<String>();
+					buildCustomKeys(keys, yunJiao, 0, "");
+					Scanner allReports = new Scanner(new File(REPORT_ALL));
+					while (allReports.hasNextLine()) {
+						String line = allReports.nextLine();
+						for (String key : keys) {
+							if (line.contains(":") && line.substring(0, line.indexOf(":")).trim().equals(key)) {
+								output.println(line);
+								if (REPORT_ON_SCREEN) {
+									System.out.println(line);
+								}
 							}
 						}
 					}
-					continue;
-				}
-				
-				Set<String> keys = new HashSet<String>();
-				buildCustomKeys(keys, yunJiao, 0, "");
-				Scanner allReports = new Scanner(new File(REPORT_ALL));
-				while (allReports.hasNextLine()) {
-					String line = allReports.nextLine();
-					for (String key : keys) {
-						if (line.contains(":") && line.substring(0, line.indexOf(":")).trim().equals(key)) {
-							output.println(line);
-							if (REPORT_ON_SCREEN) {
-								System.out.println(line);
-							}
-						}
+					allReports.close();
+					output.close();
+					output.println("==========================");
+					if (REPORT_ON_SCREEN) {
+						System.out.println("==========================");
 					}
-				}
-				allReports.close();
-				output.close();
-				output.println("==========================");
-				if (REPORT_ON_SCREEN) {
+				} catch (Exception e) {
+					System.out.println("> Input format error, possibly missing bracket pair or symbol.\n" +
+							"> Please check your input format according to instructions above.\n" +
+							"> To turn instructions on, toggle global variable SHOW_INSTR around line 5 in Rapper.java to true.");
 					System.out.println("==========================");
+					continue;
 				}
 			}
 		}
