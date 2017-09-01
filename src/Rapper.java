@@ -18,7 +18,7 @@ public class Rapper {
 	private static final Map<Character, List<Character>> aoeiuv = new HashMap<Character, List<Character>>();
 	private static final Set<Character> allYuanYinYunMu = new TreeSet<Character>();
 	private static final Set<String> allYunMu = new TreeSet<String>();
-	private static final List<String> uToV_ShengMu = Arrays.asList("ｊ", "ｑ", "ｘ");
+	private static final List<String> uToV_ShengMu = Arrays.asList("ｊ", "ｑ", "ｘ", "ｙ");
 	private static final List<String> uToV_u = Arrays.asList("ｕ", "ū", "ú", "ǔ", "ù");
 	private static final List<String> uToV_v = Arrays.asList("ü", "ǖ", "ǘ", "ǚ", "ǜ");
 	private static Map<Character, Set<String>> chars = new HashMap<Character, Set<String>>();
